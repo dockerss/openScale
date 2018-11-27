@@ -16,6 +16,7 @@
 
 package com.health.openscale.core.bluetooth;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 
 import java.util.Locale;
@@ -94,5 +95,14 @@ public class BluetoothFactory {
             return new BluetoothInlife(context);
         }
         return null;
+    }
+
+    public static boolean needsBond(BluetoothDevice device) {
+        // Assume classic devices need bond
+        if (device.getType() == BluetoothDevice.DEVICE_TYPE_CLASSIC) {
+            return true;
+        }
+
+        return device.getName().equals("BF600");
     }
 }

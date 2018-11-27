@@ -381,19 +381,15 @@ public class BluetoothPreferences extends PreferenceFragment {
             stopDiscoveryAndLeScan();
             btScanner.getDialog().dismiss();
 
-            // Perform an explicit bonding with classic devices
-            switch (device.getType()) {
-                case BluetoothDevice.DEVICE_TYPE_CLASSIC:
-                    if (device.getBondState() == BluetoothDevice.BOND_NONE) {
-                        device.createBond();
-                    }
-                    break;
-                case BluetoothDevice.DEVICE_TYPE_LE:
-                    if (OpenScale.DEBUG_MODE) {
-                        getDebugInfo(device);
-                    }
-                    break;
+            if (BluetoothFactory.needsBond(device)
+                    && device.getBondState() == BluetoothDevice.BOND_NONE) {
+                Timber.d("Trying to create bond to %s", formatDeviceName(device));
+                device.createBond();
             }
+            else if (device.getType() == BluetoothDevice.DEVICE_TYPE_LE) {
+                getDebugInfo(device);
+            }
+
             return true;
         }
     }
