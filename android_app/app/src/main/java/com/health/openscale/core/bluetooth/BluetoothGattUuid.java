@@ -62,6 +62,7 @@ public class BluetoothGattUuid {
 
     // https://www.bluetooth.com/specifications/gatt/services
     public static final UUID SERVICE_BODY_COMPOSITION = fromShortCode(0x181b);
+    public static final UUID SERVICE_CURRENT_TIME = fromShortCode(0x1805);
     public static final UUID SERVICE_DEVICE_INFORMATION = fromShortCode(0x180a);
     public static final UUID SERVICE_GENERIC_ACCESS = fromShortCode(0x1800);
     public static final UUID SERVICE_GENERIC_ATTRIBUTE = fromShortCode(0x1801);
