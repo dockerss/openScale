@@ -85,7 +85,7 @@ public class BluetoothFactory {
         if (deviceName.startsWith("YUNMAI-ISSE")) {
             return new BluetoothYunmaiSE_Mini(context, false);
         }
-        if (deviceName.startsWith("01257B") || deviceName.startsWith("11257B")) {
+        if (deviceName.startsWith("01257B") || deviceName.startsWith("11257B") || deviceName.contains("Scale 700")) {
             // Trisa Body Analyze 4.0, aka Transtek GBF-1257-B
             return new BluetoothTrisaBodyAnalyze(context);
         }
