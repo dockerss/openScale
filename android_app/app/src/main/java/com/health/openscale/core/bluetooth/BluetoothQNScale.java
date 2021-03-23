@@ -16,19 +16,16 @@
 
 package com.health.openscale.core.bluetooth;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 
+import com.health.openscale.R;
 import com.health.openscale.core.OpenScale;
 import com.health.openscale.core.bluetooth.lib.TrisaBodyAnalyzeLib;
 import com.health.openscale.core.datatypes.ScaleMeasurement;
 import com.health.openscale.core.datatypes.ScaleUser;
 import com.health.openscale.core.utils.Converters;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 import timber.log.Timber;
@@ -72,9 +69,8 @@ public class BluetoothQNScale extends BluetoothCommunication {
 
 
     private static long MILLIS_2000_YEAR = 949334400000L;
-    private boolean       hasReceived;
-    private boolean hasWork=false;
-    private float        weightScale=100.0f;
+    private boolean hasReceived;
+    private float weightScale=100.0f;
 
 
     public BluetoothQNScale(Context context) {
@@ -88,24 +84,30 @@ public class BluetoothQNScale extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextInitCmd(int stateNr) {
-        return false;
-    }
-
-    @Override
-    protected boolean nextBluetoothCmd(int stateNr) {
-        switch (stateNr) {
+    protected boolean onNextStep(int stepNr) {
+        switch (stepNr) {
             case 0:
                 // set notification on for custom characteristic 1 (weight, time, and others)
-                setNotificationOn(WEIGHT_MEASUREMENT_SERVICE, CUSTOM1_MEASUREMENT_CHARACTERISTIC, WEIGHT_MEASUREMENT_CONFIG);
+                setNotificationOn(WEIGHT_MEASUREMENT_SERVICE, CUSTOM1_MEASUREMENT_CHARACTERISTIC);
                 break;
             case 1:
                 // set indication on for weight measurement
-                setIndicationOn(WEIGHT_MEASUREMENT_SERVICE, CUSTOM2_MEASUREMENT_CHARACTERISTIC, WEIGHT_MEASUREMENT_CONFIG);
+                setIndicationOn(WEIGHT_MEASUREMENT_SERVICE, CUSTOM2_MEASUREMENT_CHARACTERISTIC);
                 break;
             case 2:
-                // write magicnumber 0x130915011000000042 to 0xffe3
-                byte[] ffe3magicBytes = new byte[] {(byte)0x13, (byte)0x09, (byte)0x15, (byte)0x01, (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x42};
+                final ScaleUser scaleUser = OpenScale.getInstance().getSelectedScaleUser();
+                final Converters.WeightUnit scaleUserWeightUnit = scaleUser.getScaleUnit();
+                // Value of 0x01 = KG. 0x02 = LB. Requests with stones unit are sent as LB, with post-processing in vendor app.
+                byte weightUnitByte = (byte) 0x01;
+                // Default weight unit KG. If user config set to LB or ST, scale will show LB units, consistent with vendor app
+                if (scaleUserWeightUnit == Converters.WeightUnit.LB || scaleUserWeightUnit == Converters.WeightUnit.ST){
+                    weightUnitByte = (byte) 0x02;
+                }
+                // write magicnumber 0x130915[WEIGHT_BYTE]10000000[CHECK_SUM] to 0xffe3
+                // 0x01 weight byte = KG. 0x02 weight byte = LB.
+                byte[] ffe3magicBytes = new byte[]{(byte) 0x13, (byte) 0x09, (byte) 0x15, weightUnitByte, (byte) 0x10, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
+                // Set last byte to be checksum
+                ffe3magicBytes[ffe3magicBytes.length -1] = sumChecksum(ffe3magicBytes, 0, ffe3magicBytes.length - 1);
                 writeBytes(WEIGHT_MEASUREMENT_SERVICE, CUSTOM3_MEASUREMENT_CHARACTERISTIC, ffe3magicBytes);
                 break;
             case 3:
@@ -114,36 +116,28 @@ public class BluetoothQNScale extends BluetoothCommunication {
                 timestamp -= SCALE_UNIX_TIMESTAMP_OFFSET;
                 byte[] date = new byte[4];
                 Converters.toInt32Le(date, 0, timestamp);
-                byte[] timeMagicBytes = new byte[] {(byte)0x02, date[0], date[1], date[2], date[3]};
+                byte[] timeMagicBytes = new byte[]{(byte) 0x02, date[0], date[1], date[2], date[3]};
                 writeBytes(WEIGHT_MEASUREMENT_SERVICE, CUSTOM4_MEASUREMENT_CHARACTERISTIC, timeMagicBytes);
                 break;
-            default:
-                return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    protected boolean nextCleanUpCmd(int stateNr) {
-
-        switch (stateNr) {
-            case 0:
-                // send stop command to scale (0x1f05151049)
-                writeBytes(WEIGHT_MEASUREMENT_SERVICE, CUSTOM3_MEASUREMENT_CHARACTERISTIC, new byte[]{(byte)0x1f, (byte)0x05, (byte)0x15, (byte)0x10, (byte)0x49});
+            case 4:
+                sendMessage(R.string.info_step_on_scale, 0);
                 break;
+            /*case 5:
+                // send stop command to scale (0x1f05151049)
+                writeBytes(CUSTOM3_MEASUREMENT_CHARACTERISTIC, new byte[]{(byte)0x1f, (byte)0x05, (byte)0x15, (byte)0x10, (byte)0x49});
+                break;*/
             default:
                 return false;
         }
+
         return true;
     }
 
-
     @Override
-    public void onBluetoothDataChange(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic gattCharacteristic) {
-        final byte[] data = gattCharacteristic.getValue();
+    public void onBluetoothNotify(UUID characteristic, byte[] value) {
+        final byte[] data = value;
 
-        if (gattCharacteristic.getUuid().equals(CUSTOM1_MEASUREMENT_CHARACTERISTIC)) {
+        if (characteristic.equals(CUSTOM1_MEASUREMENT_CHARACTERISTIC)) {
             parseCustom1Data(data);
         }
     }
@@ -157,14 +151,12 @@ public class BluetoothQNScale extends BluetoothCommunication {
 
         }
         Timber.d(sb.toString());
-        this.hasWork = true;
         float weightKg=0;
         switch (data[0]) {
-            case (byte) 16: {
+            case (byte) 16:
                 if (data[5] == (byte) 0) {
                     this.hasReceived = false;
                     //this.callback.onUnsteadyWeight(this.qnBleDevice, decodeWeight(data[3],  data[4]));
-                    return;
                 } else if (data[5] == (byte) 1) {
                     //        writeData(CmdBuilder.buildOverCmd(this.protocolType, 16));
                     if (!this.hasReceived) {
@@ -177,12 +169,10 @@ public class BluetoothQNScale extends BluetoothCommunication {
                         Timber.d("Weight byte 2 %d", weightByteTwo);
                         Timber.d("Raw Weight: %f", weightKg);
 
-
                         if (weightKg > 0.0f) {
                             //QNData md = buildMeasuredData(this.qnUser, weight, decodeIntegerValue
                             // (data[6], data[7]), decodeIntegerValue(data[8], data[9]),
                             // new  Date(), data);
-
 
                             int resistance1 = decodeIntegerValue   (data[6], data[7]);
                             int resistance2 = decodeIntegerValue(data[8], data[9]);
@@ -190,6 +180,7 @@ public class BluetoothQNScale extends BluetoothCommunication {
                             Timber.d("resistance2: %d", resistance2);
 
                             final ScaleUser scaleUser = OpenScale.getInstance().getSelectedScaleUser();
+                            Timber.d("scale user " + scaleUser);
                             ScaleMeasurement btScaleMeasurement = new ScaleMeasurement();
                             //TrisaBodyAnalyzeLib gives almost simillar values for QNScale body fat calcualtion
                             TrisaBodyAnalyzeLib qnscalelib = new TrisaBodyAnalyzeLib(scaleUser.getGender().isMale() ? 1 : 0, scaleUser.getAge(), (int)scaleUser.getBodyHeight());
@@ -202,31 +193,23 @@ public class BluetoothQNScale extends BluetoothCommunication {
                             btScaleMeasurement.setMuscle(qnscalelib.getMuscle(weightKg, impedance));
                             btScaleMeasurement.setBone(qnscalelib.getBone(weightKg, impedance));
                             btScaleMeasurement.setWeight(weightKg);
-                            //setBtMachineState(BT_MACHINE_STATE.BT_CLEANUP_STATE)
-                            addScaleData(btScaleMeasurement);
-
-                            return;
+                            addScaleMeasurement(btScaleMeasurement);
                         }
-                        return;
                     }
-                    return;
-                } else {
-                    return;
                 }
-            }
-            case (byte) 18: {
+                break;
+            case (byte) 18:
                 byte protocolType = data[2];
                 this.weightScale = data[10] == (byte) 1 ? 100.0f : 10.0f;
                 int[] iArr = new int[5];
                 //TODO
                 //writeData(CmdBuilder.buildCmd(19, this.protocolType, 1, 16, 0, 0, 0));
-                return;
-            }
+                break;
             case (byte) 33:
                 //  TODO
                 //writeBleData(CmdBuilder.buildCmd(34, this.protocolType, new int[0]));
-                return;
-            case (byte) 35: {
+                break;
+            case (byte) 35:
                 weightKg = decodeWeight(data[9], data[10]);
                 if (weightKg > 0.0f) {
                     int resistance = decodeIntegerValue(data[11], data[12]);
@@ -244,22 +227,17 @@ public class BluetoothQNScale extends BluetoothCommunication {
 
                     if (data[3] == data[4]) {
                         //  TODO
-                        
-                        return;
                     }
-                    return;
                 }
-            }
-            default:
-                return;
+                break;
         }
     }
 
-    float decodeWeight(byte a, byte b) {
+    private float decodeWeight(byte a, byte b) {
         return ((float) (((a & 255) << 8) + (b & 255))) / this.weightScale;
     }
 
-    public static int decodeIntegerValue(byte a, byte b) {
+    private int decodeIntegerValue(byte a, byte b) {
         return ((a & 255) << 8) + (b & 255);
     }
 
