@@ -4,25 +4,22 @@
     <string name="title_graph">Çizelge</string>
     <string name="title_table">Tablo</string>
     <string name="title_statistics">İstatistik</string>
-    <string name="title_users">Kullanıcı</string>
+    <string name="title_users">Kullanıcılar</string>
     <string name="title_measurements">Ölçüler</string>
     <string name="title_about">Hakkında</string>
-
     <string name="action_settings">Ayarlar</string>
     <string name="action_bluetooth_status">Bluetooth Durumu</string>
-
     <string name="label_cancel">İptal</string>
     <string name="label_ok">Tamam</string>
     <string name="label_yes">Evet</string>
     <string name="label_no">Hayır</string>
     <string name="label_delete">Sil</string>
     <string name="label_add_user">Kullanıcı ekle</string>
-
     <string name="label_weight">Ağırlık</string>
-    <string name="label_bmi">Vücut Kitle Endeksi (BMI)</string>
+    <string name="label_bmi">Vücut kitle endeksi (BMI)</string>
     <string name="label_bmr">Bazal Metabolizma Hızı (BMR)</string>
-    <string name="label_fat">Vücut Yağ Yüzdesi</string>
-    <string name="label_water">Vücut su oranı</string>
+    <string name="label_fat">Vücut yağ yüzdesi</string>
+    <string name="label_water">Toplam vücut suyu</string>
     <string name="label_muscle">Kas oranı</string>
     <string name="label_lbm">Yağsız vücut kütlesi</string>
     <string name="label_waist">Bel çevresi</string>
@@ -32,47 +29,40 @@
     <string name="label_whr">Bel-Kalça oranı</string>
     <string name="label_bone">Kemik kütlesi</string>
     <string name="label_smartUserAssign">Akıllı kullanıcı ataması</string>
-
     <plurals name="label_days">
-	<item quantity="one">%d Gün</item>
-	<item quantity="other">%d gün</item>
-</plurals>
+        <item quantity="one">%d Gün</item>
+        <item quantity="other">%d gün</item>
+    </plurals>
     <string name="label_last_week">Geçen hafta ortalaması</string>
     <string name="label_last_month">Geçen ay ortalaması</string>
     <string name="label_weight_difference">Ağırlık farkı</string>
     <string name="label_goal_date_is">Hedef tarih:</string>
     <string name="label_days_left">Kalan günler</string>
-
     <string name="label_date">Tarih</string>
     <string name="label_time">Zaman</string>
     <string name="label_birthday">Doğum günü</string>
     <string name="label_user_name">Ad</string>
-    <string name="label_height">"Boy "</string>
+    <string name="label_height">Boy</string>
     <string name="label_scale_unit">Ölçek birimi</string>
     <string name="label_gender">Cinsiyet</string>
     <string name="label_male">Erkek</string>
     <string name="label_female">Kadın</string>
     <string name="label_goal_weight">Hedef ağırlık</string>
     <string name="label_goal_date">Hedef Tarih</string>
-
-
     <string name="label_title_user">Kullanıcı</string>
     <string name="label_title_last_measurement">son ölçüm</string>
     <string name="label_title_goal">Hedef</string>
-
     <string name="label_import">İçe aktar</string>
     <string name="label_export">Dışa aktar</string>
     <string name="label_delete_all">Hepsini Sil</string>
-
     <string name="error_value_required">Değer gerekli</string>
     <string name="error_value_range">Değer, aralık dışı</string>
-    <string name="error_exporting">Dışa aktarma hatası</string>
-    <string name="error_importing">İçe aktarma hatası</string>
-    <string name="error_user_name_required">Hata: ad gerekli</string>
-    <string name="error_height_required">Error: boy gerekli</string>
-    <string name="error_initial_weight_required">Hata: İlk ağırlık gerekli</string>
-    <string name="error_goal_weight_required">Hata: Hedef ağırlık gerekli</string>
-
+    <string name="error_exporting">Dışa aktarılamadı</string>
+    <string name="error_importing">İçe aktarılamadı</string>
+    <string name="error_user_name_required">Ad gerekli</string>
+    <string name="error_height_required">Boy gerekli</string>
+    <string name="error_initial_weight_required">İlk ağırlık gerekli</string>
+    <string name="error_goal_weight_required">Hedef ağırlık gerekli</string>
     <string name="info_data_deleted">Giriş silindi</string>
     <string name="info_data_all_deleted">Tüm girişler silindi</string>
     <string name="info_data_exported">Dışa aktrıldı</string>
@@ -87,44 +77,33 @@
     <string name="info_bluetooth_try_connection">Bağlanıyor:</string>
     <string name="info_bluetooth_connection_lost">Bluetooth bağlantısı kesildi</string>
     <string name="info_bluetooth_no_device">Bluetooth cihazı bulunamadı</string>
-    <string name="info_bluetooth_connection_successful">Bağlantı kuruldu</string>
+    <string name="info_bluetooth_connection_successful">Bağlı</string>
     <string name="info_bluetooth_init">Bluetooth aygıtını başlat</string>
     <string name="info_bluetooth_connection_error">Beklenmeyen Bluetooth hatası</string>
     <string name="info_new_data_added">%1$.2f%2$s [%3$s] den %4$s\'e eklendi</string>
-
     <string name="info_enter_user_name">Adınız</string>
     <string name="info_no_selected_user">Kullanıcı yok. Lütfen ayarlardan yeni bir kullanıcı oluşturun.</string>
     <string name="info_no_evaluation_available">Değer değerlendirilemedi</string>
-
     <string name="question_really_delete">Giriş silinsin mi\?</string>
     <string name="question_really_delete_all">Tüm kullanıcılara ait tüm girişler silinsin mi\?</string>
     <string name="question_really_delete_user">Kullanıcı silinsin mi\?</string>
-
     <string name="label_bluetooth_title">Bluetooth</string>
-    <string name="label_bluetooth_enable">Başlangıçda ölçeğe bağlan</string>
+    <string name="label_bluetooth_enable">Başlangıçda tartıya bağlan</string>
     <string name="label_bluetooth_searching">Bluetooth özellikli tartınız aranıyor</string>
-
     <string name="label_enable_labels">Veri etiketi</string>
     <string name="label_enable_points">Veri noktası</string>
-
     <string name="label_delete_confirmation">Onayı sil</string>
-
     <string name="label_category_measurement_database">Ölçüm veritabanı</string>
-
     <string name="label_maintainer">Bakımcı</string>
     <string name="label_website">İnternet sitesi</string>
     <string name="label_license">Lisans</string>
-
     <string name="label_automatic">oto</string>
-
     <string name="label_reminder">Anımsatıcı</string>
     <string name="label_reminder_weekdays">Günler</string>
     <string name="label_reminder_time">Zaman</string>
     <string name="label_reminder_notify_text">Bildirim metni</string>
     <string name="default_value_reminder_notify_text">Tartılma zamanı</string>
-
     <string name="info_on_date">Üzerinde</string>
-
     <string name="Monday">Pazartesi</string>
     <string name="Tuesday">Salı</string>
     <string name="Wednesday">Çarşamba</string>
@@ -139,31 +118,22 @@
     <string name="label_export_dir">Dışa aktarım dizini</string>
     <string name="label_not_found">Bulunamadı</string>
     <string name="label_ignoreOutOfRange">Aralığın dışındaki verileri yoksay</string>
-    <string name="label_initial_weight">Baþlangıç ağırlığı</string>
-    <string name="label_regression_line">Ağırlık çizgisinde gerileme</string>
-    <string name="label_regression_line_degree">polinom derecesinde gerileme</string>
+    <string name="label_initial_weight">Başlangıç ağırlığı</string>
     <string name="label_goal_line">Hedef çizgisi</string>
-
     <string name="error_max_scale_users">Ençok eşzamanlı tartı kullanıcı sayısına ulaştı</string>
-    <string name="info_step_on_scale">Referans ölçümleri için lütfen tartıya çıplak ayakla çıkın</string>
+    <string name="info_step_on_scale_for_reference">Referans ölçümleri için lütfen tartıya çıplak ayakla çıkın</string>
     <string name="info_measuring">Ağırlık ölçme: %.2f</string>
-<string name="title_general">Genel</string>
-
+    <string name="title_general">Genel</string>
     <string name="open_drawer">Açık</string>
     <string name="close_drawer">kapat</string>
-
     <string name="label_add_measurement">Ölçüm ekle</string>
     <string name="label_share">Paylaş</string>
-    <string name="info_bluetooth_no_device_set">Seçili Bluetooth aygıtı yok</string>
+    <string name="info_bluetooth_no_device_set">Bluetooth aygıtı seçin</string>
     <string name="info_new_data_duplicated">Aynı tarih ve saatte ölçüm zaten var</string>
-
     <string name="label_mergeWithLastMeasurement">Son ölçüm ile birleştir</string>
     <string name="label_bluetooth_searching_finished">Arama tamamlandı</string>
-
     <string name="label_theme">Tema</string>
-
     <string name="label_help">Yardım</string>
-
     <string name="label_feedback_message_enjoying">openScale\'den hoşlandınız mı\?</string>
     <string name="label_feedback_message_rate_app">Google Play veya GitHub\'ta bir derecelendirmeye ne dersiniz\?</string>
     <string name="label_feedback_message_issue">Biraz geri bildirim vermek ister misiniz\?</string>
@@ -171,18 +141,13 @@
     <string name="label_feedback_message_no">Pek sayılmaz</string>
     <string name="label_feedback_message_positive">Tamam</string>
     <string name="label_feedback_message_negative">Hayır, teşekkürler</string>
-
-    <string name="trisa_scale_pairing_succeeded">Eşleme başarılı oldu!
+    <string name="trisa_scale_pairing_succeeded">Eşleşme başarılı oldu! 
+\n 
+\nÖlçüm verilerini almak için tekrar bağlanın.</string>
+    <string name="customactivityoncrash_error_activity_error_occurred_explanation">Beklenmedik bir hata oluştu.
 \n
-\nÖlçüm verilerini almak için tekrar bağlanın.
-\n
-\n</string>
-
-    <string name="customactivityoncrash_error_activity_error_occurred_explanation">Beklenmedik bir hata oluştu
-\n
-\nLütfen hata ayrıntılarını içeren yeni bir kayıt oluşturun
-\nhttps://github.com/oliexdev/openScale/issues
-\n</string>
+\nLütfen https://github.com/oliexdev/openScale/issues
+\nadresinde hata ayrıntılarını içeren yeni bir kayıt oluşturun</string>
     <string name="customactivityoncrash_error_activity_restart_app">Uygulamayı yeniden başlat</string>
     <string name="customactivityoncrash_error_activity_close_app">Uygulamayı kapat</string>
     <string name="customactivityoncrash_error_activity_error_details">Hata ayrıntıları</string>
@@ -193,18 +158,15 @@
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Hata bilgisi</string>
     <string name="edit">Düzenle</string>
     <string name="save">Kaydet</string>
-
-    <string name="label_month_view">Aylık görünüm</string>
+    <string name="label_month_view">Ay görünümü</string>
     <string name="label_weeks_view">Hafta görünümü</string>
-
     <string name="permission_not_granted">İzin verilmedi</string>
     <string name="permission_bluetooth_info_title">Bilgi</string>
-    <string name="permission_read_write_data_description">tüm kayıtlı ölçümler ve kullanıcı bilgilerini içeren openScale verisini oku</string>
-    <string name="permission_read_write_data_label">openScale Verisini Okuyun</string>
+    <string name="permission_read_write_data_description">kullanıcı bilgileri ve kaydedilen tüm ölçümler dahil olmak üzere openScale verilerini oku/yaz</string>
+    <string name="permission_read_write_data_label">openScale Verilerini Oku/Yaz</string>
     <string name="label_next">Sonraki</string>
-    <string name="label_click_measurement_configure">Yapılandırmak için ölçümü tıklayın</string>
     <string name="label_estimate_measurement">Tahmini ölçüm</string>
-    <string name="language_default">Sistem öntanımlısı</string>
+    <string name="language_default">Sistem öntanımlı değeri</string>
     <string name="label_language">Dil</string>
     <string name="theme_light">Açık</string>
     <string name="theme_dark">Koyu</string>
@@ -237,22 +199,14 @@
     <string name="activity_level_mild">Hafif</string>
     <string name="activity_level_heavy">Ağır</string>
     <string name="activity_level_extreme">Aşırı</string>
-    <string name="label_data_provider_enable">Üçüncü parti uygulama erişimi</string>
-<string name="trisa_scale_not_paired">Bu tartı eşleşmedi!
-\n
-\nEşleştirme moduna geçmek için, terazinin altındaki düğmeyi basılı tutun ve ardından cihaz parolasını geri almak için tekrar bağlanın.
-\n
-\n
-\n
+    <string name="trisa_scale_not_paired">Bu tartı eşleştirilmedi! 
 \n 
-\n</string>
-    <string name="permission_bluetooth_info">Bluetooth aygıtlarını aramak için kabaca yer izni gerekli. Aygıt bulunduğunda iptal edilebilir.</string>
+\nEşleştirme moduna geçmek için, terazinin altındaki düğmeyi basılı tutun ve ardından cihaz parolasını geri almak için tekrar bağlanın.</string>
+    <string name="permission_bluetooth_info">Bluetooth aygıtlarını aramak için konum izni gerekli. Aygıt bulunduktan sonra iptal edilebilir.</string>
     <string name="label_long_press_drag_reorder">Yeniden sıralamak için uzun basın ve ölçümü sürükleyin</string>
-    <string name="label_set_default_order">Öntanımlı sıralama ayarı</string>
+    <string name="label_set_default_order">Öntanımlı sıralamayı ayarla</string>
     <string name="label_export_overwrite">\"%s\" Önceki dışa aktarımın üzerine yazılsın mı\?</string>
-    <string name="label_include_in_overview_graph">Genel bakış çizelgesinin içeriğine ekle</string>
     <string name="label_estimation_formula">Tahmin formülü</string>
-    <string name="label_overview_graph">Genel bakış çizelgesi</string>
     <string name="label_estimate_measurement_summary">Ağırlık, boy, yaş, cinsiyet vb. temelli.</string>
     <string name="label_your_bluetooth_scale">Bluetooth tartınız</string>
     <string name="label_caliper1_male">Göğüs derisi kıvrım kalınlığı</string>
@@ -261,9 +215,81 @@
     <string name="label_caliper2_female">Karın derisi kıvrım kalınlığı</string>
     <string name="label_caliper3_female">Kalça derisi kıvrım kalınlığı</string>
     <string name="activity_level_moderate">Orta derecede</string>
-    <string name="label_share_subject">CSV veri dışa aktarımı (%s)</string>
-
+    <string name="label_share_subject">openScale veri dışa aktarımı (%s)</string>
     <string name="label_click_to_help_add_support">Yardım ekleyerek destek olmak için buraya tıklayın</string>
     <string name="label_measurement_in_percent">% cinsinden ölçüm</string>
     <string name="toggle_expand">Geçiş genişlemesi</string>
+    <string name="label_tdee">Toplam Günlük Enerji Harcaması (TDEE)</string>
+    <string name="info_bluetooth_no_device_retrying">Bağlantı kurulamadı, yeniden deneniyor…</string>
+    <string name="info_bluetooth_connection_disconnected">Bluetooth bağlantısı kapalı</string>
+    <string name="label_enable_legend">Grafik efsanesi</string>
+    <string name="label_enable_yaxis">Y-eksen</string>
+    <string name="info_step_on_scale">Lütfen tartıya yalınayak çıkın</string>
+    <string name="label_day_view">Gün görünümü</string>
+    <string name="label_year_view">Yıl görünümü</string>
+    <string name="label_measurement_bar">Ölçü çubuğu</string>
+    <string name="permission_location_service_info">Bluetooth aygıtlarını aramak için Android ayarlarından konum erişim izni verin. İsteğe bağlı olarak daha sonra iptal edebilirsiniz.</string>
+    <string name="label_is_on_right_axis">Sağ eksende</string>
+    <string name="label_calories">Kaloriler</string>
+    <string name="label_upgrade_to_openScale_pro">Bluetooth desteği için openScale paralı sürüme yükseltin</string>
+    <string name="action_donation">Bağış</string>
+    <string name="info_scale_low_battery">Düşük pil düzeyi (%d%%), lütfen tartının pilini değiştirin veya doldurun</string>
+    <string name="info_bluetooth_connection_error_scale_offline">Tartı ile bağlantı kurulamıyor, lütfen açık olduğundan emin olun.</string>
+    <string name="label_empty">boş</string>
+    <string name="label_age">Yaş</string>
+    <string name="label_slide_welcome_main_text">Bluetooth tartıları destekleyen, açık kaynaklı ağırlık ve vücut ölçüleri izleyicisi.</string>
+    <string name="label_slide_privacy_top_text">Kişisel sağlık verilerinizi koruyun.</string>
+    <string name="label_slide_user_top_text">Birden fazla kullanıcı desteklenmektedir.</string>
+    <string name="label_slide_user_main_text">openScale için çevrim içi bir hesap oluşturmanız gerekmez.
+\n
+\nVücut ölçüleri ölçümlerden hesaplanır.</string>
+    <string name="label_slide_opensource_top_text">Yüksek derecede saydamlığa sahip açık kaynaklı bir yazılımdır.</string>
+    <string name="label_slide_opensource_main_text">openScale <a href="https://github.com/oliexdev/openScale/blob/master/LICENSE">GPLv3</a> altında lisanslanmıştır.
+\n
+\nTüm hesaplamalar saydamdır ve hiçbir gizli veri aktarımı veya kullanıcı tanımlaması yapılmaz.
+\n
+\nKaynak kodunun tamamını <a href="https://github.com/oliexdev/openScale">GitHub</a> sayfasında bulabilirsiniz. Onu inceleyerek kendinizi openScale kullanmaya ikna edin.</string>
+    <string name="label_slide_bluetooth_top_text">Farklı üreticilerin çeşitli Bluetooth ölçekleri desteklenir.</string>
+    <string name="label_slide_metrics_top_text">Vücut ölçülerinizi izleyin ve çözümleyin.</string>
+    <string name="label_slide_support_top_text">openScale\'i iyileştirmeye yardımcı olun.</string>
+    <string name="app_intro_skip_button">Atla</string>
+    <string name="app_intro_next_button">Sonraki</string>
+    <string name="app_intro_back_button">Geri</string>
+    <string name="app_intro_done_button">Tamam</string>
+    <string name="label_slide_metrics_main_text">openScale 22\'den fazla vücut ölçüsünü desteklemektedir.
+\n
+\nSizin için önemli olanları gösterecek şekilde yapılandırın.
+\n
+\nVücut yağı, vücut suyu ve yağsız vücut kütlesi eksikse, <a href="https://github.com/oliexdev/openScale/wiki/Body-metric-estimations">bilimsel yayınlara</a> dayalı olarak çıkarım yapılabilir.</string>
+    <string name="label_slide_privacy_main_text">openScale bir buluta herhangi bir veri göndermez ve internete erişim izninin olmaması bunun en güçlü garantisidir.
+\n
+\nKilonuzu GoogleFit veya MQTT ile gerçekten eşzamanlamak istiyorsanız, <a href="https://play.google.com/store/apps/details?id=com.health.openscale.sync">openScale sync</a> yükleyebilirsiniz.</string>
+    <string name="label_slide_bluetooth_main_text">openScale, farklı üreticilerden Bluetooth tartıları için yerleşik desteğe sahiptir.
+\n
+\nDesteklenen tartı setini sürekli iyileştiriyor ve genişletiyoruz. Tam listeyi ve her tartının destek seviyesini <a href="https://github.com/oliexdev/openScale/wiki/Supported-scales-in-openScale">GitHub</a> sayfasında bulabilirsiniz.</string>
+    <string name="label_slide_support_main_text">openScale\'in size ihtiyacı var. Bir hata bulduysanız, bir fikriniz, sorunuz varsa veya Bluetooth tartınızın desteklenmesine yardımcı olmak istiyorsanız <a href="https://github.com/oliexdev/openScale/issues">yeni bir kayıt</a> oluşturun.
+\n
+\nopenScale\'e <a href="http://play.google.com/store/apps/details?id=com.health.openscale.pro"> GooglePlay</a>\'de olumlu bir puan vererek veya<a href="https://github.com/oliexdev/openScale"> GitHub</a> sayfasında yıldızlayarak bu projenin yaratıcısını daha fazla geliştirmek ve devamlı bakımını yapmak için motive edin.
+\n
+\nDesteğiniz ve olumlu geri bildirimleriniz çok takdir edilmektedir. Teşekkürler.</string>
+    <string name="label_slide_welcome_top_text">openScale\'e
+\nhoş geldiniz</string>
+    <string name="amputation_level_leg">Bacak</string>
+    <string name="amputation_level_lower_leg_foot">Alt bacak ve ayak</string>
+    <string name="amputation_level_foot">Ayak</string>
+    <string name="amputation_level_arm">Kol</string>
+    <string name="amputation_level_forearm_hand">Ön kol ve bacak</string>
+    <string name="amputation_level_hand">El</string>
+    <string name="amputation_level_none">Ampütasyon yok</string>
+    <string name="info_assisted_weighing_choose_reference_user">Ağırlığın çıkartılacağı referans kullanıcıyı seçin</string>
+    <string name="info_assisted_weighing_no_reference_user">Referans kullanıcı yok, lütfen bir tane oluşturun</string>
+    <string name="info_assisted_weighing_old_reference_measurement">Uyarı: son referans ölçümü bir günden daha eski</string>
+    <string name="info_assisted_weighing_no_reference_measurements">Referans kullanıcının ölçümü yok</string>
+    <string name="label_amputation_right">Sağ ampütasyon</string>
+    <string name="label_amputation_left">Sol ampütasyon</string>
+    <string name="label_amputation">Ampütasyon</string>
+    <string name="label_assisted_weighing">Destekli tartım</string>
+    <string name="label_trend">Eğilim</string>
+    <string name="label_prediction">Tahmin</string>
+    <string name="label_trend_line">Eğilim çizgisi</string>
 </resources>

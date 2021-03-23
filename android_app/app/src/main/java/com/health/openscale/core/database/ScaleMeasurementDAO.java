@@ -16,12 +16,14 @@
 
 package com.health.openscale.core.database;
 
+import android.database.Cursor;
+
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
-import android.database.Cursor;
 
 import com.health.openscale.core.datatypes.ScaleMeasurement;
 
@@ -30,10 +32,10 @@ import java.util.List;
 
 @Dao
 public interface ScaleMeasurementDAO {
-    @Query("SELECT * FROM scaleMeasurements WHERE datetime = :datetime AND userId = :userId AND enabled = 1")
+    @Query("SELECT * FROM scaleMeasurements WHERE datetime = :datetime AND userId = :userId")
     ScaleMeasurement get(Date datetime, int userId);
 
-    @Query("SELECT * FROM scaleMeasurements WHERE id = :id AND enabled = 1")
+    @Query("SELECT * FROM scaleMeasurements WHERE id = :id")
     ScaleMeasurement get(int id);
 
     @Query("SELECT * FROM scaleMeasurements WHERE datetime < (SELECT datetime FROM scaleMeasurements WHERE id = :id) AND userId = :userId AND enabled = 1 ORDER BY datetime DESC LIMIT 0,1")
@@ -42,14 +44,23 @@ public interface ScaleMeasurementDAO {
     @Query("SELECT * FROM scaleMeasurements WHERE datetime > (SELECT datetime FROM scaleMeasurements WHERE id = :id) AND userId = :userId AND enabled = 1 LIMIT 0,1")
     ScaleMeasurement getNext(int id, int userId);
 
+    @Query("SELECT count(id) FROM scaleMeasurements WHERE userId = :userId AND enabled = 1")
+    long getCount(int userId);
+
     @Query("SELECT * FROM scaleMeasurements WHERE userId = :userId AND enabled = 1 ORDER BY datetime DESC")
     List<ScaleMeasurement> getAll(int userId);
+
+    @Query("SELECT * FROM scaleMeasurements WHERE userId = :userId AND enabled = 1 ORDER BY datetime DESC")
+    LiveData<List<ScaleMeasurement>> getAllAsLiveData(int userId);
 
     @Query("SELECT * FROM scaleMeasurements WHERE datetime >= :startYear AND datetime < :endYear AND userId = :userId AND enabled = 1 ORDER BY datetime DESC")
     List<ScaleMeasurement> getAllInRange(Date startYear, Date endYear, int userId);
 
-    @Query("SELECT * FROM scaleMeasurements WHERE userId = :userId AND enabled = 1 ORDER BY datetime DESC LIMIT 1")
+    @Query("SELECT * FROM scaleMeasurements WHERE userId = :userId AND enabled = 1 ORDER BY datetime DESC LIMIT 0,1")
     ScaleMeasurement getLatest(int userId);
+
+    @Query("SELECT * FROM scaleMeasurements WHERE userId = :userId AND enabled = 1 ORDER BY datetime ASC LIMIT 0,1")
+    ScaleMeasurement getFirst(int userId);
 
     @Insert (onConflict = OnConflictStrategy.IGNORE)
     long insert(ScaleMeasurement measurement);

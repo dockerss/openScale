@@ -152,8 +152,6 @@
     <string name="label_not_found">nič ni bilo najdeno</string>
     <string name="label_ignoreOutOfRange">Ignoriraj vrednosti zunaj meje</string>
     <string name="label_initial_weight">Začetna teža</string>
-    <string name="label_regression_line">Regresijska krivulja teže</string>
-    <string name="label_regression_line_degree">Regresija polinomske stopnje</string>
     <string name="label_goal_line">Ciljna krivulja</string>
     <string name="label_help">Pomoč</string>
 
@@ -166,7 +164,7 @@
     <string name="label_feedback_message_negative">Ne, hvala</string>
 
     <string name="error_max_scale_users">Doseženo je bilo maksimalno število sočasnih uporabnikov tehtnice</string>
-    <string name="info_step_on_scale">Prosim, stopite bosi na tehtnico za referenčno meritev</string>
+    <string name="info_step_on_scale_for_reference">Prosim, stopite bosi na tehtnico za referenčno meritev</string>
     <string name="info_measuring">Izmerjena teža: %.2f</string>
 
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Zgodila se je nepričakovana napaka.
@@ -193,10 +191,8 @@
     <string name="permission_bluetooth_info_title">Informacije</string>
     <string name="label_next">Naprej</string>
     <string name="label_long_press_drag_reorder">Dolgo držite in potegnite meritve za prerazporejanja</string>
-    <string name="label_click_measurement_configure">Kliknite meritve za rekonfiguracijo</string>
     <string name="label_set_default_order">Nastavi privzet vrstni red</string>
     <string name="label_export_overwrite">Zamenjaj prejšnji izvoz \"%s\"?</string>
-    <string name="label_include_in_overview_graph">Vključi v pregledni graf</string>
     <string name="label_measurement_in_percent">Meritev v %</string>
     <string name="label_estimate_measurement">Ocena meritve</string>
     <string name="label_estimation_formula">Ocenjevalna formula</string>
@@ -206,7 +202,6 @@
     <string name="theme_dark">Temno</string>
     <string name="label_contribute_translation">Prispevaj prevod</string>
     <string name="label_add_or_fix_translation">Dodaj ali popravi obstoječega</string>
-    <string name="label_overview_graph">Pregledni graf</string>
     <string name="label_percent">Procent</string>
     <string name="label_estimated">Ocenjeno</string>
     <string name="label_estimate_measurement_summary">Bazirano na teži, višini, starosti, spolu, ...</string>

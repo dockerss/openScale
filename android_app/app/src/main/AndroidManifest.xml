@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- Permission to allow read of data from the database through a ContentProvider.
          Marked "dangerous" so that explicit user approval is required to read this data, not
@@ -22,22 +22,24 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher_openscale"
+        android:requestLegacyExternalStorage="true"
+        android:icon="${appIcon}"
+        android:roundIcon="${appIconRound}"
         android:label="@string/app_name"
         android:name=".core.Application"
-        android:theme="@style/AppTheme_Light" >
+        android:theme="@style/AppTheme" >
         <activity
             android:name=".gui.MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".gui.activities.SettingsActivity"/>
-        <activity android:name=".gui.activities.DataEntryActivity"/>
-        <activity android:name=".gui.activities.UserSettingsActivity"/>
+        <activity android:name=".gui.slides.AppIntroActivity" android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".gui.slides.SlideToNavigationAdapter" android:theme="@style/AppTheme.NoActionBar"/>
 
         <receiver android:name=".core.alarm.ReminderBootReceiver" android:enabled="false">
             <intent-filter>

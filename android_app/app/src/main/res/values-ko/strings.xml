@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="title_overview">개요</string>
+<resources>
+    <string name="title_overview">개요</string>
     <string name="title_graph">차트</string>
     <string name="title_table">표</string>
     <string name="title_statistics">통계</string>
@@ -35,8 +36,8 @@
     <string name="label_bone">골부피</string>
     <string name="label_smartUserAssign">스마트 사용자 할당</string>
     <plurals name="label_days">
-    <item quantity="other">%d 일</item>
-</plurals>
+        <item quantity="other">%d 일</item>
+    </plurals>
     <string name="label_last_week">지난 주 평균</string>
     <string name="label_last_month">지난 달 평균</string>
     <string name="label_weight_difference">무게 차이</string>
@@ -69,7 +70,7 @@
     <string name="error_goal_weight_required">오류: 목표 무게 필요</string>
     <string name="info_data_deleted">항목 삭제됨</string>
     <string name="info_data_all_deleted">모든 항목 삭제됨</string>
-    <string name="info_data_exported">"다음 위치로 내보냄: "</string>
+    <string name="info_data_exported">다음 위치로 내보냄:</string>
     <string name="info_data_imported">"다음 위치에서 가져옴: "</string>
     <string name="info_enter_value_in">다음 위치에 있는 값</string>
     <string name="info_enter_comment">비고</string>
@@ -128,8 +129,6 @@
     <string name="label_not_found">발견되지 않음</string>
     <string name="label_ignoreOutOfRange">범위를 벗어난 데이터 무시</string>
     <string name="label_initial_weight">초기 무게</string>
-    <string name="label_regression_line">회귀 무게 선</string>
-    <string name="label_regression_line_degree">회귀 다항식 차수</string>
     <string name="label_goal_line">목표선</string>
     <string name="label_help">도움말</string>
     <string name="label_feedback_message_enjoying">openScale을 잘 사용하고 계신가요\?</string>
@@ -150,7 +149,8 @@
 \n측정치를 가져오기 위해서 다시 연결하세요.</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">예측하지 못한 오류 발생.
 \n
-\nhttps://github.com/oliexdev/openScale/issues 에 오류에 대한 자세한 정보를 넣어서 새 이슈를 만들어 주세요</string>
+\n에 오류에 대한 자세한 정보를 넣어서 새 이슈를 만들어 주세요
+\nhttps://github.com/oliexdev/openScale/issues</string>
     <string name="customactivityoncrash_error_activity_restart_app">앱 재시작</string>
     <string name="customactivityoncrash_error_activity_close_app">앱 닫기</string>
     <string name="customactivityoncrash_error_activity_error_details">오류 정보</string>
@@ -171,10 +171,8 @@
     <string name="permission_read_write_data_label">openScale 데이터 읽기</string>
     <string name="label_next">다음</string>
     <string name="label_long_press_drag_reorder">측정치를 길게 누르고 드래그 하여 순서를 바꿀 수 있습니다</string>
-    <string name="label_click_measurement_configure">측정치를 눌러 설정</string>
     <string name="label_set_default_order">기본 순서를 설정</string>
     <string name="label_export_overwrite">기존 내보내기 한 \"%s\" 를 덮어쓸까요\?</string>
-    <string name="label_include_in_overview_graph">개요 그래프에 포함</string>
     <string name="label_measurement_in_percent">측정치를 퍼센트로</string>
     <string name="label_estimate_measurement">측정치 예상</string>
     <string name="label_estimation_formula">예상 수식</string>
@@ -184,7 +182,6 @@
     <string name="theme_dark">어두운 테마</string>
     <string name="label_contribute_translation">번역 기여</string>
     <string name="label_add_or_fix_translation">존재하는 번역을 수정하거나 새 번역을 추가</string>
-    <string name="label_overview_graph">개요 그래프</string>
     <string name="label_percent">퍼센트</string>
     <string name="label_estimated">예상됨</string>
     <string name="label_estimate_measurement_summary">무게, 키, 나이, 성별, 등으로 예상됨.</string>
@@ -221,5 +218,4 @@
     <string name="activity_level_moderate">중간 수준의 운동</string>
     <string name="activity_level_heavy">많은 운동</string>
     <string name="activity_level_extreme">과도한 운동</string>
-    <string name="label_data_provider_enable">제 3자 앱 액세스</string>
 </resources>

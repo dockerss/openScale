@@ -197,7 +197,7 @@ public class BluetoothQNScale extends BluetoothCommunication {
                         }
                     }
                 }
-                break;
+            break;
             case (byte) 18:
                 byte protocolType = data[2];
                 this.weightScale = data[10] == (byte) 1 ? 100.0f : 10.0f;

@@ -16,34 +16,23 @@
 package com.health.openscale.gui.preferences;
 
 import android.os.Bundle;
-import android.preference.EditTextPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.text.method.DigitsKeyListener;
+import android.view.Menu;
+import android.view.MenuInflater;
+
+import androidx.preference.PreferenceFragmentCompat;
 
 import com.health.openscale.R;
 
-public class GraphPreferences extends PreferenceFragment {
+public class GraphPreferences extends PreferenceFragmentCompat {
+    @Override
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        setPreferencesFromResource(R.xml.graph_preferences, rootKey);
 
-    private static final String PREFERENCE_KEY_REGRESSION_LINE_ORDER = "regressionLineOrder";
+        setHasOptionsMenu(true);
+    }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        addPreferencesFromResource(R.xml.graph_preferences);
-
-        EditTextPreference regressionLineOrder =
-                (EditTextPreference) findPreference(PREFERENCE_KEY_REGRESSION_LINE_ORDER);
-        regressionLineOrder.getEditText().setKeyListener(new DigitsKeyListener());
-        regressionLineOrder.getEditText().setSelectAllOnFocus(true);
-        regressionLineOrder.setSummary(regressionLineOrder.getText());
-        regressionLineOrder.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary((String) newValue);
-                return true;
-            }
-        });
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
     }
 }

@@ -20,77 +20,141 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.text.Html;
+import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 import com.health.openscale.BuildConfig;
+import com.health.openscale.MobileNavigationDirections;
 import com.health.openscale.R;
 import com.health.openscale.core.OpenScale;
 import com.health.openscale.core.bluetooth.BluetoothCommunication;
 import com.health.openscale.core.datatypes.ScaleMeasurement;
 import com.health.openscale.core.datatypes.ScaleUser;
-import com.health.openscale.gui.activities.BaseAppCompatActivity;
-import com.health.openscale.gui.activities.DataEntryActivity;
-import com.health.openscale.gui.activities.SettingsActivity;
-import com.health.openscale.gui.activities.UserSettingsActivity;
-import com.health.openscale.gui.fragments.GraphFragment;
-import com.health.openscale.gui.fragments.OverviewFragment;
-import com.health.openscale.gui.fragments.StatisticsFragment;
-import com.health.openscale.gui.fragments.TableFragment;
-import com.health.openscale.gui.preferences.BluetoothPreferences;
+import com.health.openscale.core.utils.Converters;
+import com.health.openscale.gui.measurement.MeasurementEntryFragment;
+import com.health.openscale.gui.preferences.BluetoothSettingsFragment;
+import com.health.openscale.gui.preferences.UserSettingsFragment;
+import com.health.openscale.gui.slides.AppIntroActivity;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import cat.ereza.customactivityoncrash.config.CaocConfig;
 import timber.log.Timber;
 
-public class MainActivity extends BaseAppCompatActivity
+public class MainActivity extends AppCompatActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener{
+    public static final String PREFERENCE_LANGUAGE = "language";
+    private static Locale systemDefaultLocale = null;
     private SharedPreferences prefs;
     private static boolean firstAppStart = true;
     private static boolean valueOfCountModified = false;
     private static int bluetoothStatusIcon = R.drawable.ic_bluetooth_disabled;
-    private MenuItem bluetoothStatus;
+    private static MenuItem bluetoothStatus;
 
     private static final int IMPORT_DATA_REQUEST = 100;
     private static final int EXPORT_DATA_REQUEST = 101;
     private static final int ENABLE_BLUETOOTH_REQUEST = 102;
+    private static final int APPINTRO_REQUEST = 103;
 
+    private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawerLayout;
-    private NavigationView navDrawer;
-    private BottomNavigationView navBottomDrawer;
-    private ActionBarDrawerToggle drawerToggle;
+    private NavController navController;
+    private NavigationView navigationView;
+    private BottomNavigationView navigationBottomView;
 
     private boolean settingsActivityRunning = false;
 
+    public static Context createBaseContext(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        String language = prefs.getString(PREFERENCE_LANGUAGE, "");
+        if (language.isEmpty() || language.equals("default")) {
+            if (systemDefaultLocale != null) {
+                Locale.setDefault(systemDefaultLocale);
+                systemDefaultLocale = null;
+            }
+            return context;
+        }
+
+        if (systemDefaultLocale == null) {
+            systemDefaultLocale = Locale.getDefault();
+        }
+
+        Locale locale;
+        String[] localeParts = TextUtils.split(language, "-");
+        if (localeParts.length == 2) {
+            locale = new Locale(localeParts[0], localeParts[1]);
+        }
+        else {
+            locale = new Locale(localeParts[0]);
+        }
+        Locale.setDefault(locale);
+
+        Configuration config = context.getResources().getConfiguration();
+        config.setLocale(locale);
+
+        return context.createConfigurationContext(config);
+    }
+
+    @Override
+    protected void attachBaseContext(Context context) {
+        super.attachBaseContext(createBaseContext(context));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
+
+        String prefTheme = prefs.getString("app_theme", "Light");
+
+        if (prefTheme.equals("Dark")) {
+            if (Build.VERSION.SDK_INT >= 29) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                setTheme(R.style.AppTheme_Dark);
+            }
+        }
+
+        super.onCreate(savedInstanceState);
 
         CaocConfig.Builder.create()
                 .trackActivities(false)
@@ -102,44 +166,87 @@ public class MainActivity extends BaseAppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSupportNavigateUp();
+            }
+        });
 
         // Find our drawer view
         drawerLayout = findViewById(R.id.drawer_layout);
 
         // Find our drawer view
-        navDrawer = findViewById(R.id.navigation_view);
+        navigationView = findViewById(R.id.navigation_view);
+        navigationBottomView = findViewById(R.id.navigation_bottom_view);
 
-        navBottomDrawer = findViewById(R.id.navigation_bottom_view);
-        navBottomDrawer.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_overview, R.id.nav_graph, R.id.nav_table, R.id.nav_statistic, R.id.nav_main_preferences)
+                .setOpenableLayout(drawerLayout)
+                .build();
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
+        NavigationUI.setupWithNavController(navigationBottomView, navController);
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                selectDrawerItem(item.getItemId());
+                switch (item.getItemId()) {
+                    case R.id.nav_donation:
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=H5KSTQA6TKTE4&source=url")));
+                        drawerLayout.closeDrawers();
+                        return true;
+                    case R.id.nav_help:
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/oliexdev/openScale/wiki")));
+                        drawerLayout.closeDrawers();
+                        return true;
+                }
+
+                prefs.edit().putInt("lastFragmentId", item.getItemId()).apply();
+                NavigationUI.onNavDestinationSelected(item, navController);
+
+                // Close the navigation drawer
+                drawerLayout.closeDrawers();
+
                 return true;
             }
         });
 
-        //Create Drawer Toggle
-        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open_drawer, R.string.close_drawer){
+        navigationBottomView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                prefs.edit().putInt("lastFragmentId", item.getItemId()).apply();
+                NavigationUI.onNavDestinationSelected(item, navController);
+                return true;
+            }
+        });
 
-        };
+        navigationBottomView.setSelectedItemId(prefs.getInt("lastFragmentId", R.id.nav_overview));
 
-        drawerLayout.addDrawerListener(drawerToggle);
-
-        // Setup drawer view
-        setupDrawerContent(navDrawer);
-
-        selectDrawerItem(prefs.getInt("lastFragmentId", R.id.nav_overview));
-
-        navBottomDrawer.setSelectedItemId(prefs.getInt("lastFragmentId", R.id.nav_overview));
+        if (BuildConfig.BUILD_TYPE == "light") {
+            ImageView launcherIcon = navigationView.getHeaderView(0).findViewById(R.id.profileImageView);
+            launcherIcon.setImageResource(R.drawable.ic_launcher_openscale_light);
+            navigationView.getMenu().findItem(R.id.nav_donation).setVisible(false);
+        } else if (BuildConfig.BUILD_TYPE == "pro") {
+            ImageView launcherIcon = navigationView.getHeaderView(0).findViewById(R.id.profileImageView);
+            launcherIcon.setImageResource(R.drawable.ic_launcher_openscale_pro);
+            navigationView.getMenu().findItem(R.id.nav_donation).setVisible(false);
+        }
 
         if (prefs.getBoolean("firstStart", true)) {
-            Intent intent = new Intent(this, UserSettingsActivity.class);
-            intent.putExtra(UserSettingsActivity.EXTRA_MODE, UserSettingsActivity.ADD_USER_REQUEST);
-            startActivity(intent);
+            Intent appIntroIntent = new Intent(this, AppIntroActivity.class);
+            startActivityForResult(appIntroIntent, APPINTRO_REQUEST);
 
             prefs.edit().putBoolean("firstStart", false).apply();
+        }
+
+        if (prefs.getBoolean("resetLaunchCountForVersion2.0", true)) {
+            prefs.edit().putInt("launchCount", 0).commit();
+
+            prefs.edit().putBoolean("resetLaunchCountForVersion2.0", false).apply();
         }
 
         if(!valueOfCountModified){
@@ -148,8 +255,8 @@ public class MainActivity extends BaseAppCompatActivity
             if(prefs.edit().putInt("launchCount", ++launchCount).commit()){
                 valueOfCountModified = true;
 
-                // ask the user once for feedback on the 30th app launch
-                if(launchCount == 30){
+                // ask the user once for feedback on the 15th app launch
+                if(launchCount == 15){
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                     builder.setMessage(R.string.label_feedback_message_enjoying)
@@ -174,6 +281,13 @@ public class MainActivity extends BaseAppCompatActivity
     }
 
     @Override
+    public boolean onSupportNavigateUp() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         settingsActivityRunning = false;
@@ -182,7 +296,6 @@ public class MainActivity extends BaseAppCompatActivity
     @Override
     public void onDestroy() {
         prefs.unregisterOnSharedPreferenceChangeListener(this);
-        OpenScale.getInstance().disconnectFromBluetoothDevice();
         super.onDestroy();
     }
 
@@ -245,102 +358,6 @@ public class MainActivity extends BaseAppCompatActivity
         dialog.show();
     }
 
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        selectDrawerItem(menuItem.getItemId());
-                        navBottomDrawer.setSelectedItemId(menuItem.getItemId());
-                        return true;
-
-                    }
-
-                });
-    }
-
-    private void selectDrawerItem(int menuItemId) {
-        // Create a new fragment and specify the fragment to show based on nav item clicked
-        Class fragmentClass;
-        String fragmentTitle;
-
-        switch (menuItemId) {
-            default:
-            case R.id.nav_overview:
-                fragmentClass = OverviewFragment.class;
-                fragmentTitle = getResources().getString(R.string.title_overview);
-                break;
-            case R.id.nav_graph:
-                fragmentClass = GraphFragment.class;
-                fragmentTitle = getResources().getString(R.string.title_graph);
-                break;
-            case R.id.nav_table:
-                fragmentClass = TableFragment.class;
-                fragmentTitle = getResources().getString(R.string.title_table);
-                break;
-            case R.id.nav_statistic:
-                fragmentClass = StatisticsFragment.class;
-                fragmentTitle = getResources().getString(R.string.title_statistics);
-                break;
-            case R.id.nav_settings:
-                drawerLayout.closeDrawer(navDrawer, false);
-                Intent settingsIntent = new Intent(this, SettingsActivity.class);
-                settingsActivityRunning = true;
-                startActivity(settingsIntent);
-                return;
-            case R.id.nav_help:
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/oliexdev/openScale/wiki")));
-                drawerLayout.closeDrawers();
-                return;
-        }
-
-        prefs.edit().putInt("lastFragmentId", menuItemId).apply();
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
-        // Make sure that any pending transaction completes so that added fragments are
-        // actually added and won't get added again (may happen during activity creation
-        // when this method is called twice).
-        fragmentManager.executePendingTransactions();
-
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        final String tag = String.valueOf(menuItemId);
-
-        boolean found = false;
-        for (Fragment fragment : fragmentManager.getFragments()) {
-            if (fragment.getTag().equals(tag)) {
-                // Show selected fragment if already added
-                transaction.show(fragment);
-                found = true;
-            }
-            else if (!fragment.isHidden()) {
-                // Hide currently shown fragment
-                transaction.hide(fragment);
-            }
-        }
-
-        // If fragment isn't found then add it
-        if (!found) {
-            try {
-                transaction.add(R.id.fragment_content, (Fragment) fragmentClass.newInstance(), tag);
-            } catch (Exception e) {
-                Timber.e(e, "Failed to add fragment %s", tag);
-            }
-        }
-
-        transaction.commit();
-
-        // Set action bar title
-        setTitle(fragmentTitle);
-
-        // Set checked item
-        navDrawer.setCheckedItem(menuItemId);
-
-        // Close the navigation drawer
-        drawerLayout.closeDrawers();
-    }
-
     private void showNoSelectedUserDialog() {
         AlertDialog.Builder infoDialog = new AlertDialog.Builder(this);
 
@@ -351,11 +368,6 @@ public class MainActivity extends BaseAppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
         switch (item.getItemId()) {
             case android.R.id.home:
                 drawerLayout.openDrawer(GravityCompat.START);
@@ -366,15 +378,30 @@ public class MainActivity extends BaseAppCompatActivity
                     return true;
                 }
 
-                Intent intent = new Intent(getApplicationContext(), DataEntryActivity.class);
-                startActivity(intent);
+                if (OpenScale.getInstance().getSelectedScaleUser().isAssistedWeighing()) {
+                    showAssistedWeighingDialog(true);
+                } else {
+                    MobileNavigationDirections.ActionNavMobileNavigationToNavDataentry action = MobileNavigationDirections.actionNavMobileNavigationToNavDataentry();
+                    action.setMode(MeasurementEntryFragment.DATA_ENTRY_MODE.ADD);
+                    action.setTitle(getString(R.string.label_add_measurement));
+                    Navigation.findNavController(this, R.id.nav_host_fragment).navigate(action);
+                }
                 return true;
             case R.id.action_bluetooth_status:
                 if (OpenScale.getInstance().disconnectFromBluetoothDevice()) {
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_disabled);
                 }
                 else {
-                    invokeConnectToBluetoothDevice();
+                    if (OpenScale.getInstance().getSelectedScaleUserId() == -1) {
+                        showNoSelectedUserDialog();
+                        return true;
+                    }
+
+                    if (OpenScale.getInstance().getSelectedScaleUser().isAssistedWeighing()) {
+                        showAssistedWeighingDialog(false);
+                    } else {
+                        invokeConnectToBluetoothDevice();
+                    }
                 }
                 return true;
             case R.id.importData:
@@ -389,6 +416,95 @@ public class MainActivity extends BaseAppCompatActivity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showAssistedWeighingDialog(boolean manuelEntry) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        LinearLayout linearLayout = new LinearLayout(this);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        linearLayout.setPadding(50, 50, 0, 0);
+        TextView title = new TextView(this);
+        title.setText(R.string.label_assisted_weighing);
+        title.setTextSize(24);
+        title.setTypeface(null, Typeface.BOLD);
+
+        TextView description = new TextView(this);
+        description.setPadding(0, 20, 0, 0);
+        description.setText(R.string.info_assisted_weighing_choose_reference_user);
+        linearLayout.addView(title);
+        linearLayout.addView(description);
+
+        builder.setCustomTitle(linearLayout);
+
+        List<ScaleUser> scaleUserList = OpenScale.getInstance().getScaleUserList();
+        ArrayList<String> infoTexts = new ArrayList<>();
+        ArrayList<Integer> userIds = new ArrayList<>();
+
+        int assistedWeighingRefUserId = prefs.getInt("assistedWeighingRefUserId", -1);
+        int checkedItem = 0;
+
+        for (ScaleUser scaleUser : scaleUserList) {
+            String singleInfoText = scaleUser.getUserName();
+
+            if (!scaleUser.isAssistedWeighing()) {
+                ScaleMeasurement lastRefScaleMeasurement = OpenScale.getInstance().getLastScaleMeasurement(scaleUser.getId());
+
+                if (lastRefScaleMeasurement != null) {
+                    singleInfoText += " [" + Converters.fromKilogram(lastRefScaleMeasurement.getWeight(), scaleUser.getScaleUnit()) + scaleUser.getScaleUnit().toString() + "]";
+                } else {
+                    singleInfoText += " [" + getString(R.string.label_empty) + "]";
+                }
+
+                infoTexts.add(singleInfoText);
+                userIds.add(scaleUser.getId());
+            }
+
+            if (scaleUser.getId() == assistedWeighingRefUserId) {
+                checkedItem = infoTexts.indexOf(singleInfoText);
+            }
+        }
+
+        if (!infoTexts.isEmpty()) {
+            builder.setSingleChoiceItems(infoTexts.toArray(new CharSequence[infoTexts.size()]), checkedItem, null);
+        } else {
+            builder.setMessage(getString(R.string.info_assisted_weighing_no_reference_user));
+        }
+
+        builder.setNegativeButton(R.string.label_cancel, null);
+        builder.setPositiveButton(R.string.label_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int selectedPosition = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+                prefs.edit().putInt("assistedWeighingRefUserId", userIds.get(selectedPosition)).commit();
+
+                ScaleMeasurement lastRefScaleMeasurement = OpenScale.getInstance().getLastScaleMeasurement(userIds.get(selectedPosition));
+
+                if (lastRefScaleMeasurement != null) {
+                    Calendar calMinusOneDay = Calendar.getInstance();
+                    calMinusOneDay.add(Calendar.DAY_OF_YEAR, -1);
+
+                    if (calMinusOneDay.getTime().after(lastRefScaleMeasurement.getDateTime())) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.info_assisted_weighing_old_reference_measurement), Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), getString(R.string.info_assisted_weighing_no_reference_measurements), Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (manuelEntry) {
+                    MobileNavigationDirections.ActionNavMobileNavigationToNavDataentry action = MobileNavigationDirections.actionNavMobileNavigationToNavDataentry();
+                    action.setMode(MeasurementEntryFragment.DATA_ENTRY_MODE.ADD);
+                    action.setTitle(getString(R.string.label_add_measurement));
+                    navController.navigate(action);
+                } else {
+                    invokeConnectToBluetoothDevice();
+                }
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
@@ -415,22 +531,25 @@ public class MainActivity extends BaseAppCompatActivity
             setBluetoothStatusIcon(bluetoothStatusIcon);
         }
 
-        return true;
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        drawerToggle.syncState();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig){
-        super.onConfigurationChanged(newConfig);
-        drawerToggle.onConfigurationChanged(newConfig);
+        return super.onCreateOptionsMenu(menu);
     }
 
     private void invokeConnectToBluetoothDevice() {
+        if (BuildConfig.BUILD_TYPE == "light") {
+            AlertDialog infoDialog = new AlertDialog.Builder(this)
+                .setMessage(Html.fromHtml(getResources().getString(R.string.label_upgrade_to_openScale_pro) + "<br><br> <a href=\"https://play.google.com/store/apps/details?id=com.health.openscale.pro\">Install openScale pro version</a>"))
+                .setPositiveButton(getResources().getString(R.string.label_ok), null)
+                .setIcon(R.drawable.ic_launcher_openscale_light)
+                .setTitle("openScale " + BuildConfig.VERSION_NAME)
+                .create();
+
+            infoDialog.show();
+
+            ((TextView)infoDialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+
+            return;
+        }
+
         final OpenScale openScale = OpenScale.getInstance();
 
         if (openScale.getSelectedScaleUserId() == -1) {
@@ -439,9 +558,9 @@ public class MainActivity extends BaseAppCompatActivity
         }
 
         String deviceName = prefs.getString(
-                BluetoothPreferences.PREFERENCE_KEY_BLUETOOTH_DEVICE_NAME, "");
+                BluetoothSettingsFragment.PREFERENCE_KEY_BLUETOOTH_DEVICE_NAME, "");
         String hwAddress = prefs.getString(
-                BluetoothPreferences.PREFERENCE_KEY_BLUETOOTH_HW_ADDRESS, "");
+                BluetoothSettingsFragment.PREFERENCE_KEY_BLUETOOTH_HW_ADDRESS, "");
 
         if (!BluetoothAdapter.checkBluetoothAddress(hwAddress)) {
             setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_lost);
@@ -470,54 +589,67 @@ public class MainActivity extends BaseAppCompatActivity
         @Override
         public void handleMessage(Message msg) {
 
-            BluetoothCommunication.BT_STATUS_CODE btStatusCode = BluetoothCommunication.BT_STATUS_CODE.values()[msg.what];
+            BluetoothCommunication.BT_STATUS btStatus = BluetoothCommunication.BT_STATUS.values()[msg.what];
 
-            switch (btStatusCode) {
-                case BT_RETRIEVE_SCALE_DATA:
+            switch (btStatus) {
+                case RETRIEVE_SCALE_DATA:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_success);
                     ScaleMeasurement scaleBtData = (ScaleMeasurement) msg.obj;
 
                     OpenScale openScale = OpenScale.getInstance();
 
                     if (prefs.getBoolean("mergeWithLastMeasurement", true)) {
-                        List<ScaleMeasurement> scaleMeasurementList = openScale.getScaleMeasurementList();
-
-                        if (!scaleMeasurementList.isEmpty()) {
-                            ScaleMeasurement lastMeasurement = scaleMeasurementList.get(0);
+                        if (!openScale.isScaleMeasurementListEmpty()) {
+                            ScaleMeasurement lastMeasurement = openScale.getLastScaleMeasurement();
                             scaleBtData.merge(lastMeasurement);
                         }
                     }
 
-                    openScale.addScaleData(scaleBtData, true);
+                    openScale.addScaleMeasurement(scaleBtData, true);
                     break;
-                case BT_INIT_PROCESS:
+                case INIT_PROCESS:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_success);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_init), Toast.LENGTH_SHORT).show();
                     Timber.d("Bluetooth initializing");
                     break;
-                case BT_CONNECTION_LOST:
+                case CONNECTION_LOST:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_lost);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_connection_lost), Toast.LENGTH_SHORT).show();
                     Timber.d("Bluetooth connection lost");
                     break;
-                case BT_NO_DEVICE_FOUND:
+                case NO_DEVICE_FOUND:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_lost);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_no_device), Toast.LENGTH_SHORT).show();
-                    Timber.d("No Bluetooth device found");
+                    Timber.e("No Bluetooth device found");
                     break;
-                case BT_CONNECTION_ESTABLISHED:
+                case CONNECTION_RETRYING:
+                    setBluetoothStatusIcon(R.drawable.ic_bluetooth_searching);
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_no_device_retrying), Toast.LENGTH_SHORT).show();
+                    Timber.e("No Bluetooth device found retrying");
+                    break;
+                case CONNECTION_ESTABLISHED:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_success);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_connection_successful), Toast.LENGTH_SHORT).show();
                     Timber.d("Bluetooth connection successful established");
                     break;
-                case BT_UNEXPECTED_ERROR:
+                case CONNECTION_DISCONNECT:
+                    setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_lost);
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_connection_disconnected), Toast.LENGTH_SHORT).show();
+                    Timber.d("Bluetooth connection successful disconnected");
+                    break;
+                case UNEXPECTED_ERROR:
                     setBluetoothStatusIcon(R.drawable.ic_bluetooth_connection_lost);
                     Toast.makeText(getApplicationContext(), getResources().getString(R.string.info_bluetooth_connection_error) + ": " + msg.obj, Toast.LENGTH_SHORT).show();
                     Timber.e("Bluetooth unexpected error: %s", msg.obj);
                     break;
-                case BT_SCALE_MESSAGE:
-                    String toastMessage = String.format(getResources().getString(msg.arg1), msg.obj);
-                    Toast.makeText(getApplicationContext(), toastMessage, Toast.LENGTH_LONG).show();
+                case SCALE_MESSAGE:
+                    try {
+                        String toastMessage = String.format(getResources().getString(msg.arg1), msg.obj);
+                        Toast.makeText(getApplicationContext(), toastMessage, Toast.LENGTH_LONG).show();
+                        Timber.d("Bluetooth scale message: " + toastMessage);
+                    } catch (Exception ex) {
+                        Timber.e("Bluetooth scale message error: " + ex);
+                    }
                     break;
             }
         }
@@ -661,6 +793,8 @@ public class MainActivity extends BaseAppCompatActivity
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        OpenScale openScale = OpenScale.getInstance();
+
         if (requestCode == ENABLE_BLUETOOTH_REQUEST) {
             if (resultCode == RESULT_OK) {
                 invokeConnectToBluetoothDevice();
@@ -671,11 +805,19 @@ public class MainActivity extends BaseAppCompatActivity
             return;
         }
 
+        if (requestCode == APPINTRO_REQUEST) {
+            if (openScale.getSelectedScaleUserId() == -1) {
+                MobileNavigationDirections.ActionNavMobileNavigationToNavUsersettings action = MobileNavigationDirections.actionNavMobileNavigationToNavUsersettings();
+                action.setMode(UserSettingsFragment.USER_SETTING_MODE.ADD);
+                action.setTitle(getString(R.string.label_add_user));
+                Navigation.findNavController(this, R.id.nav_host_fragment).navigate(action);
+            }
+        }
+
         if (resultCode != RESULT_OK || data == null) {
             return;
         }
 
-        OpenScale openScale = OpenScale.getInstance();
 
         switch (requestCode) {
             case IMPORT_DATA_REQUEST:

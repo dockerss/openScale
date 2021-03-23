@@ -16,16 +16,16 @@
 
 package com.health.openscale.core.bluetooth;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 
+import com.health.openscale.R;
 import com.health.openscale.core.OpenScale;
 import com.health.openscale.core.bluetooth.lib.OneByoneLib;
 import com.health.openscale.core.datatypes.ScaleMeasurement;
 import com.health.openscale.core.datatypes.ScaleUser;
 import com.health.openscale.core.utils.Converters;
 
+import java.util.Calendar;
 import java.util.UUID;
 
 import timber.log.Timber;
@@ -37,9 +37,18 @@ public class BluetoothOneByone extends BluetoothCommunication {
 
     private final UUID CMD_MEASUREMENT_CHARACTERISTIC = BluetoothGattUuid.fromShortCode(0xfff1); // write only
 
+    private boolean waitAck             = false; // if true, resume after receiving acknowledgement
+    private boolean historicMeasurement = false; // processing real-time vs historic measurement
+    private int     noHistoric          = 0;     // number of historic measurements received
+
+    // don't save any measurements closer than 3 seconds to each other
+    private Calendar  lastDateTime;
+    private final int DATE_TIME_THRESHOLD = 3000;
 
     public BluetoothOneByone(Context context) {
         super(context);
+        lastDateTime = Calendar.getInstance();
+        lastDateTime.set(2000, 1, 1);
     }
 
     @Override
@@ -48,12 +57,10 @@ public class BluetoothOneByone extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextInitCmd(int stateNr) {
-        switch (stateNr) {
+    protected boolean onNextStep(int stepNr) {
+        switch (stepNr) {
             case 0:
-                setNotificationOn(WEIGHT_MEASUREMENT_SERVICE,
-                            WEIGHT_MEASUREMENT_CHARACTERISTIC_BODY_COMPOSITION,
-                            BluetoothGattUuid.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION);
+                setNotificationOn(WEIGHT_MEASUREMENT_SERVICE, WEIGHT_MEASUREMENT_CHARACTERISTIC_BODY_COMPOSITION);
                 break;
             case 1:
                 ScaleUser currentUser = OpenScale.getInstance().getSelectedScaleUser();
@@ -74,6 +81,28 @@ public class BluetoothOneByone extends BluetoothCommunication {
                         xorChecksum(magicBytes, 0, magicBytes.length - 1);
                 writeBytes(WEIGHT_MEASUREMENT_SERVICE, CMD_MEASUREMENT_CHARACTERISTIC, magicBytes);
                 break;
+            case 2:
+                Calendar dt = Calendar.getInstance();
+                final byte[] setClockCmd = {(byte)0xf1, (byte)(dt.get(Calendar.YEAR) >> 8),
+                        (byte)(dt.get(Calendar.YEAR) & 255), (byte)(dt.get(Calendar.MONTH) + 1),
+                        (byte)dt.get(Calendar.DAY_OF_MONTH), (byte)dt.get(Calendar.HOUR_OF_DAY),
+                        (byte)dt.get(Calendar.MINUTE), (byte)dt.get(Calendar.SECOND)};
+                waitAck = true;
+                writeBytes(WEIGHT_MEASUREMENT_SERVICE, CMD_MEASUREMENT_CHARACTERISTIC, setClockCmd);
+                // 2-byte notification value f1 00 will be received after this command
+                stopMachineState(); // we will resume after receiving acknowledgement f1 00
+                break;
+            case 3:
+                // request historic measurements; they are followed by real-time measurements
+                historicMeasurement = true;
+                final byte[] getHistoryCmd = {(byte)0xf2, (byte)0x00};
+                writeBytes(WEIGHT_MEASUREMENT_SERVICE, CMD_MEASUREMENT_CHARACTERISTIC, getHistoryCmd);
+                // multiple measurements will be received, they start cf ... and are 11 or 18 bytes long
+                // 2-byte notification value f2 00 follows last historic measurement
+                break;
+            case 4:
+                sendMessage(R.string.info_step_on_scale, 0);
+                break;
             default:
                 return false;
         }
@@ -82,25 +111,35 @@ public class BluetoothOneByone extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextBluetoothCmd(int stateNr) {
-        return false;
-    }
-
-    @Override
-    protected boolean nextCleanUpCmd(int stateNr) {
-        return false;
-    }
-
-    @Override
-    public void onBluetoothDataChange(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic gattCharacteristic) {
-        final byte[] data = gattCharacteristic.getValue();
+    public void onBluetoothNotify(UUID characteristic, byte[] value) {
+        final byte[] data = value;
         if (data == null) {
             return;
         }
 
         // if data is valid data
-        if (data.length == 20 && data[0] == (byte)0xcf) {
+        if (data.length >= 11 && data[0] == (byte)0xcf) {
+            if (historicMeasurement) {
+                ++noHistoric;
+            }
             parseBytes(data);
+        } else {
+            // show 2-byte ack messages in debug output:
+            //   f1 00 setClockCmd acknowledgement
+            //   f2 00 end of historic measurements, real-time measurements follow
+            //   f2 01 clearHistoryCmd acknowledgement
+            Timber.d("received bytes [%s]", byteInHex(data));
+
+            if (waitAck && data.length == 2 && data[0] == (byte)0xf1 && data[1] == 0) {
+                waitAck = false;
+                resumeMachineState();
+            } else if (data.length == 2 && data[0] == (byte)0xf2 && data[1] == 0) {
+                historicMeasurement = false;
+                if (noHistoric > 0) {
+                    final byte[] clearHistoryCmd = {(byte)0xf2, (byte)0x01};
+                    writeBytes(WEIGHT_MEASUREMENT_SERVICE, CMD_MEASUREMENT_CHARACTERISTIC, clearHistoryCmd);
+                }
+            }
         }
     }
 
@@ -108,6 +147,21 @@ public class BluetoothOneByone extends BluetoothCommunication {
         float weight = Converters.fromUnsignedInt16Le(weightBytes, 3) / 100.0f;
         int impedanceCoeff = Converters.fromUnsignedInt24Le(weightBytes, 5);
         int impedanceValue = weightBytes[5] + weightBytes[6] + weightBytes[7];
+        boolean impedancePresent = (weightBytes[9] != 1) && (impedanceCoeff != 0);
+        boolean dateTimePresent = weightBytes.length >= 18;
+
+        if (!impedancePresent || (!dateTimePresent && historicMeasurement)) {
+            // unwanted, no impedance or historic measurement w/o time-stamp
+            return;
+        }
+
+        Calendar dateTime = Calendar.getInstance();
+        if (dateTimePresent) {
+            // 18-byte or longer measurements contain date and time, used in history
+            dateTime.set(Converters.fromUnsignedInt16Be(weightBytes, 11),
+                         weightBytes[13] - 1, weightBytes[14], weightBytes[15],
+                         weightBytes[16], weightBytes[17]);
+        }
 
         final ScaleUser scaleUser = OpenScale.getInstance().getSelectedScaleUser();
 
@@ -145,14 +199,33 @@ public class BluetoothOneByone extends BluetoothCommunication {
 
         ScaleMeasurement scaleBtData = new ScaleMeasurement();
         scaleBtData.setWeight(weight);
-        scaleBtData.setFat(oneByoneLib.getBodyFat(weight, impedanceCoeff));
-        scaleBtData.setWater(oneByoneLib.getWater(scaleBtData.getFat()));
-        scaleBtData.setBone(oneByoneLib.getBoneMass(weight, impedanceValue));
-        scaleBtData.setVisceralFat(oneByoneLib.getVisceralFat(weight));
-        scaleBtData.setMuscle(oneByoneLib.getMuscle(weight, scaleBtData.getFat(), scaleBtData.getBone()));
+        try {
+            dateTime.setLenient(false);
+            scaleBtData.setDateTime(dateTime.getTime());
 
-        Timber.d("scale measurement [%s]", scaleBtData);
+            scaleBtData.setFat(oneByoneLib.getBodyFat(weight, impedanceCoeff));
+            scaleBtData.setWater(oneByoneLib.getWater(scaleBtData.getFat()));
+            scaleBtData.setBone(oneByoneLib.getBoneMass(weight, impedanceValue));
+            scaleBtData.setVisceralFat(oneByoneLib.getVisceralFat(weight));
+            scaleBtData.setMuscle(oneByoneLib.getMuscle(weight, scaleBtData.getFat(), scaleBtData.getBone()));
 
-        addScaleData(scaleBtData);
+            Timber.d("scale measurement [%s]", scaleBtData);
+
+            if (dateTime.getTimeInMillis() - lastDateTime.getTimeInMillis() < DATE_TIME_THRESHOLD) {
+                return; // don't save measurements too close to each other
+            }
+            lastDateTime = dateTime;
+
+            addScaleMeasurement(scaleBtData);
+        }
+        catch (IllegalArgumentException e) {
+            if (historicMeasurement) {
+                Timber.d("invalid time-stamp: year %d, month %d, day %d, hour %d, minute %d, second %d",
+                        Converters.fromUnsignedInt16Be(weightBytes, 11),
+                        weightBytes[13], weightBytes[14], weightBytes[15],
+                        weightBytes[16], weightBytes[17]);
+                return; // discard historic measurement with invalid time-stamp
+            }
+        }
     }
 }

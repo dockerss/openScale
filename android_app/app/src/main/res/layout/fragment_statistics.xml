@@ -1,5 +1,4 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
@@ -8,11 +7,11 @@
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
             <TextView
@@ -42,10 +41,11 @@
 
                     <ImageView
                         android:id="@+id/imageGoalWeight"
-                        android:layout_width="match_parent"
+                        android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_target" />
+                        android:src="@drawable/ic_target"
+                        android:tint="?attr/colorControlNormal" />
 
                     <TextView
                         android:id="@+id/txtLabelGoalWeight"
@@ -85,10 +85,11 @@
 
                     <ImageView
                         android:id="@+id/imageGoalDiff"
-                        android:layout_width="match_parent"
+                        android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_difference" />
+                        android:src="@drawable/ic_difference"
+                        android:tint="?attr/colorControlNormal" />
 
                     <TextView
                         android:id="@+id/txtLabelGoalDiff"
@@ -128,10 +129,11 @@
 
                     <ImageView
                         android:id="@+id/imageDayLeft"
-                        android:layout_width="match_parent"
+                        android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_daysleft" />
+                        android:src="@drawable/ic_daysleft"
+                        android:tint="?attr/colorControlNormal" />
 
                     <TextView
                         android:id="@+id/txtLabelDayLeft"
@@ -176,27 +178,10 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray" />
 
-            <LinearLayout
+            <com.github.mikephil.charting.charts.RadarChart
+                android:id="@+id/radarPastWeek"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:layout_weight="90">
-
-                <TableLayout
-                    android:id="@+id/tableWeekAveragesLayoutColumnA"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:stretchColumns="1" />
-
-                <TableLayout
-                    android:id="@+id/tableWeekAveragesLayoutColumnB"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:stretchColumns="1" />
-
-            </LinearLayout>
+                android:layout_height="250dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -210,27 +195,11 @@
                 android:layout_height="1dp"
                 android:background="@android:color/darker_gray" />
 
-            <LinearLayout
+            <com.github.mikephil.charting.charts.RadarChart
+                android:id="@+id/radarPastMonth"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:layout_weight="90">
+                android:layout_height="250dp"/>
 
-                <TableLayout
-                    android:id="@+id/tableMonthAveragesLayoutColumnA"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:stretchColumns="1" />
-
-                <TableLayout
-                    android:id="@+id/tableMonthAveragesLayoutColumnB"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="50"
-                    android:stretchColumns="1" />
-
-            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

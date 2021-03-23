@@ -21,8 +21,9 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 
+import com.welie.blessed.BluetoothPeripheral;
+
 import java.util.HashMap;
-import java.util.UUID;
 
 import timber.log.Timber;
 
@@ -51,7 +52,7 @@ public class BluetoothDebug extends BluetoothCommunication {
     private boolean isBlacklisted(BluetoothGattService service, BluetoothGattCharacteristic characteristic) {
         // Reading this triggers a pairing request on Beurer BF710
         if (service.getUuid().equals(BluetoothGattUuid.fromShortCode(0xffe0))
-            && characteristic.getUuid().equals(BluetoothGattUuid.fromShortCode(0xffe5))) {
+                && characteristic.getUuid().equals(BluetoothGattUuid.fromShortCode(0xffe5))) {
             return true;
         }
 
@@ -135,7 +136,7 @@ public class BluetoothDebug extends BluetoothCommunication {
     private int readServiceCharacteristics(BluetoothGattService service, int offset) {
         for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
             if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0
-                && !isBlacklisted(service, characteristic)) {
+                    && !isBlacklisted(service, characteristic)) {
 
                 if (offset == 0) {
                     readBytes(service.getUuid(), characteristic.getUuid());
@@ -147,7 +148,7 @@ public class BluetoothDebug extends BluetoothCommunication {
 
             for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
                 if (offset == 0) {
-                    readBytes(service.getUuid(), characteristic.getUuid(), descriptor.getUuid());
+                    readBytes(service.getUuid(), characteristic.getUuid());
                     return -1;
                 }
 
@@ -166,32 +167,25 @@ public class BluetoothDebug extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextInitCmd(int stateNr) {
-        int offset = stateNr;
+    protected void onBluetoothDiscovery(BluetoothPeripheral peripheral) {
+        int offset = 0;
 
-        for (BluetoothGattService service : getBluetoothGattServices()) {
+        for (BluetoothGattService service : peripheral.getServices()) {
             offset = readServiceCharacteristics(service, offset);
-            if (offset == -1) {
-                return true;
-            }
         }
 
-        return false;
-    }
-
-    @Override
-    protected boolean nextBluetoothCmd(int stateNr) {
-        for (BluetoothGattService service : getBluetoothGattServices()) {
+        for (BluetoothGattService service : peripheral.getServices()) {
             logService(service, false);
         }
 
-        setBtStatus(BT_STATUS_CODE.BT_CONNECTION_LOST);
-        disconnect(false);
+        setBluetoothStatus(BT_STATUS.CONNECTION_LOST);
+        disconnect();
+    }
+
+
+    @Override
+    protected boolean onNextStep(int stateNr) {
         return false;
     }
 
-    @Override
-    protected boolean nextCleanUpCmd(int stateNr) {
-        return false;
-    }
 }

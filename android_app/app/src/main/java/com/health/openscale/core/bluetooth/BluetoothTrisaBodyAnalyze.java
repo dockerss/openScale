@@ -15,11 +15,11 @@
  */
 package com.health.openscale.core.bluetooth;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import androidx.annotation.Nullable;
 
 import com.health.openscale.R;
 import com.health.openscale.core.OpenScale;
@@ -31,7 +31,6 @@ import com.health.openscale.core.utils.Converters;
 import java.util.Date;
 import java.util.UUID;
 
-import androidx.annotation.Nullable;
 import timber.log.Timber;
 
 /**
@@ -94,7 +93,7 @@ public class BluetoothTrisaBodyAnalyze extends BluetoothCommunication {
      * set-broadcast-id command, and should disconnect after the write succeeds.
      *
      * @see #onPasswordReceived
-     * @see #nextBluetoothCmd
+     * @see #onNextStep
      */
     private boolean pairing = false;
 
@@ -121,74 +120,43 @@ public class BluetoothTrisaBodyAnalyze extends BluetoothCommunication {
     }
 
     @Override
-    public void disconnect(boolean doCleanup) {
-        Timber.i("disconnect(/*doCleanup=*/%s)", doCleanup);
-        super.disconnect(doCleanup);
-    }
-
-    @Override
-    protected boolean nextInitCmd(int stateNr) {
-        Timber.i("nextInitCmd(%d)", stateNr);
-        switch (stateNr) {
+    protected boolean onNextStep(int stepNr) {
+        Timber.i("onNextStep(%d)", stepNr);
+        switch (stepNr) {
             case 0:
                 // Register for notifications of the measurement characteristic.
-                setIndicationOn(
-                        WEIGHT_SCALE_SERVICE_UUID,
-                        MEASUREMENT_CHARACTERISTIC_UUID,
-                        BluetoothGattUuid.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION);
-                return true;  // more commands follow
+                setIndicationOn(WEIGHT_SCALE_SERVICE_UUID, MEASUREMENT_CHARACTERISTIC_UUID);
+                break;  // more commands follow
             case 1:
                 // Register for notifications of the command upload characteristic.
                 //
                 // This is the last init command, which causes a switch to the main state machine
                 // immediately after. This is important because we should be in the main state
                 // to handle pairing correctly.
-                setIndicationOn(
-                        WEIGHT_SCALE_SERVICE_UUID,
-                        UPLOAD_COMMAND_CHARACTERISTIC_UUID,
-                        BluetoothGattUuid.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION);
-                // falls through
-            default:
-                return false;  // no more commands
-        }
-    }
-
-    @Override
-    protected boolean nextBluetoothCmd(int stateNr) {
-        Timber.i("nextBluetoothCmd(%d)", stateNr);
-        switch (stateNr) {
-            case 0:
-            default:
-                return false;  // no more commands
-
-            case 1:
+                setIndicationOn(WEIGHT_SCALE_SERVICE_UUID, UPLOAD_COMMAND_CHARACTERISTIC_UUID);
+                break;
+            case 2:
                 // This state is triggered by the write in onPasswordReceived()
                 if (pairing) {
                     pairing = false;
-                    disconnect(true);
+                    disconnect();
                 }
-                return false;  // no more commands;
-        }
-    }
-
-    @Override
-    protected boolean nextCleanUpCmd(int stateNr) {
-        Timber.i("nextCleanUpCmd(%d)", stateNr);
-        switch (stateNr) {
-            case 0:
+                break;
+            case 3:
                 writeCommand(DOWNLOAD_INFORMATION_ENABLE_DISCONNECT_COMMAND);
-                // falls through
+                break;
             default:
                 return false;  // no more commands
         }
+
+        return true;
     }
 
     @Override
-    protected void onBluetoothDataChange(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic gattCharacteristic) {
-        UUID characteristicUud = gattCharacteristic.getUuid();
-        byte[] value = gattCharacteristic.getValue();
-        Timber.i("onBluetoothdataChange() characteristic=%s value=%s", characteristicUud, byteInHex(value));
-        if (UPLOAD_COMMAND_CHARACTERISTIC_UUID.equals(characteristicUud)) {
+    protected void onBluetoothNotify(UUID characteristic, byte[] value) {
+
+        Timber.i("onBluetoothdataChange() characteristic=%s value=%s", characteristic, byteInHex(value));
+        if (UPLOAD_COMMAND_CHARACTERISTIC_UUID.equals(characteristic)) {
             if (value.length == 0) {
                 Timber.e("Missing command byte!");
                 return;
@@ -206,11 +174,11 @@ public class BluetoothTrisaBodyAnalyze extends BluetoothCommunication {
             }
             return;
         }
-        if (MEASUREMENT_CHARACTERISTIC_UUID.equals(characteristicUud)) {
+        if (MEASUREMENT_CHARACTERISTIC_UUID.equals(characteristic)) {
             onScaleMeasurumentReceived(value);
             return;
         }
-        Timber.e("Unknown characteristic changed: %s", characteristicUud);
+        Timber.e("Unknown characteristic changed: %s", characteristic);
     }
 
     private void onPasswordReceived(byte[] data) {
@@ -243,7 +211,7 @@ public class BluetoothTrisaBodyAnalyze extends BluetoothCommunication {
         if (password == null) {
             Timber.w("Received challenge, but password is unknown.");
             sendMessage(R.string.trisa_scale_not_paired, null);
-            disconnect(true);
+            disconnect();
             return;
         }
         int challenge = Converters.fromSignedInt32Le(data, 1);
@@ -262,7 +230,7 @@ public class BluetoothTrisaBodyAnalyze extends BluetoothCommunication {
             return;
         }
 
-        addScaleData(measurement);
+        addScaleMeasurement(measurement);
     }
 
     public ScaleMeasurement parseScaleMeasurementData(byte[] data, ScaleUser user) {

@@ -16,16 +16,19 @@
 
 package com.health.openscale.core.datatypes;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
+import com.health.openscale.core.utils.CsvHelper;
 import com.j256.simplecsv.common.CsvColumn;
 
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
 import timber.log.Timber;
 
 @Entity(tableName = "scaleMeasurements",
@@ -44,7 +47,7 @@ public class ScaleMeasurement implements Cloneable {
     private int userId;
     @ColumnInfo(name = "enabled")
     private boolean enabled;
-    @CsvColumn(format = "dd.MM.yyyy HH:mm", mustNotBeBlank = true)
+    @CsvColumn(converterClass = CsvHelper.DateTimeConverter.class, format ="yyyy-MM-dd HH:mm", mustNotBeBlank = true)
     @ColumnInfo(name = "datetime")
     private Date dateTime;
     @CsvColumn(mustNotBeBlank = true)
@@ -101,6 +104,8 @@ public class ScaleMeasurement implements Cloneable {
     @CsvColumn(mustBeSupplied = false)
     @ColumnInfo(name = "comment")
     private String comment;
+    @Ignore
+    private int count;
 
     public ScaleMeasurement()
     {
@@ -123,6 +128,7 @@ public class ScaleMeasurement implements Cloneable {
         caliper2 = 0.0f;
         caliper3 = 0.0f;
         comment = "";
+        count = 1;
     }
 
     @Override
@@ -148,6 +154,61 @@ public class ScaleMeasurement implements Cloneable {
 
                 if (value != null && Float.class.isAssignableFrom(value.getClass())) {
                     field.set(this, (float)value + (float)field.get(summand));
+                }
+                field.setAccessible(false);
+            }
+
+            count++;
+        } catch (IllegalAccessException e) {
+            Timber.e(e);
+        }
+    }
+
+    public void add(final float summand) {
+        try {
+            Field[] fields = getClass().getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object value = field.get(this);
+
+                if (value != null && Float.class.isAssignableFrom(value.getClass())) {
+                    field.set(this, (float)value + summand);
+                }
+                field.setAccessible(false);
+            }
+
+        } catch (IllegalAccessException e) {
+            Timber.e(e);
+        }
+    }
+
+    public void subtract(final ScaleMeasurement minuend) {
+        try {
+            Field[] fields = getClass().getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object value = field.get(this);
+                if (value != null && Float.class.isAssignableFrom(value.getClass())) {
+                    field.set(this, (float)value - (float)field.get(minuend));
+                }
+                field.setAccessible(false);
+            }
+        } catch (IllegalAccessException e) {
+            Timber.e(e);
+        }
+    }
+
+    public void multiply(final float factor) {
+        try {
+            Field[] fields = getClass().getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object value = field.get(this);
+                if (value != null && Float.class.isAssignableFrom(value.getClass())) {
+                    field.set(this, (float)value * factor);
                 }
                 field.setAccessible(false);
             }
@@ -191,6 +252,10 @@ public class ScaleMeasurement implements Cloneable {
             Timber.e(e);
         }
     }
+
+    public int count() { return count; }
+
+    public boolean isAverageValue() { return (count > 1); }
 
     public int getId() {
         return id;
@@ -422,6 +487,10 @@ public class ScaleMeasurement implements Cloneable {
         float fat_caliper;
 
         float k0, k1, k2, ka;
+
+        if (caliper1 == 0.0f || caliper2 == 0.0f || caliper3 == 0.0f){
+            return 0.0f;
+        }
 
         float s = (caliper1 + caliper2 + caliper3) * 10.0f; // cm to mm
 

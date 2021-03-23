@@ -16,8 +16,6 @@
 
 package com.health.openscale.core.bluetooth;
 
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 
 import com.health.openscale.R;
@@ -75,11 +73,10 @@ public class BluetoothInlife extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextInitCmd(int stateNr) {
-        switch (stateNr) {
+    protected boolean onNextStep(int stepNr) {
+        switch (stepNr) {
             case 0:
-                setNotificationOn(WEIGHT_SERVICE, WEIGHT_MEASUREMENT_CHARACTERISTIC,
-                        BluetoothGattUuid.DESCRIPTOR_CLIENT_CHARACTERISTIC_CONFIGURATION);
+                setNotificationOn(WEIGHT_SERVICE, WEIGHT_MEASUREMENT_CHARACTERISTIC);
                 break;
             case 1:
                 ScaleUser scaleUser = OpenScale.getInstance().getSelectedScaleUser();
@@ -91,6 +88,9 @@ public class BluetoothInlife extends BluetoothCommunication {
 
                 sendCommand(0xd2, level, sex, userId, age, height);
                 break;
+            case 2:
+                sendMessage(R.string.info_step_on_scale, 0);
+                break;
             default:
                 return false;
         }
@@ -99,18 +99,8 @@ public class BluetoothInlife extends BluetoothCommunication {
     }
 
     @Override
-    protected boolean nextBluetoothCmd(int stateNr) {
-        return false;
-    }
-
-    @Override
-    protected boolean nextCleanUpCmd(int stateNr) {
-        return false;
-    }
-
-    @Override
-    public void onBluetoothDataChange(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic gattCharacteristic) {
-        final byte[] data = gattCharacteristic.getValue();
+    public void onBluetoothNotify(UUID characteristic, byte[] value) {
+        final byte[] data = value;
 
         if (data == null || data.length != 14) {
             return;
@@ -229,7 +219,7 @@ public class BluetoothInlife extends BluetoothCommunication {
         measurement.setLbm(lbm);
         measurement.setVisceralFat(clamp(visceral, 1, 50));
 
-        addScaleData(measurement);
+        addScaleMeasurement(measurement);
 
         sendCommand(0xd4);
     }
